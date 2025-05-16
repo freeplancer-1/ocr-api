@@ -2,6 +2,7 @@ import os
 from typing import Union
 
 from PIL import Image
+from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile, HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +13,11 @@ from google.api_core import retry
 from prompts.prompts import gemini_prompt
 from utils.util import parse_gemini_output
 
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+load_dotenv()
+
+api_key = os.environ.get("GEMINI_API_KEY")
+print("API_KEY: ", api_key)
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-2.0-flash")
 
 app = FastAPI()
