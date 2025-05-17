@@ -16,9 +16,8 @@ from utils.util import parse_gemini_output
 load_dotenv()
 
 api_key = os.environ.get("GEMINI_API_KEY")
-print("API_KEY: ", api_key)
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-2.0-flash")
+model = genai.GenerativeModel("gemini-2.0-flash-lite")
 
 app = FastAPI()
 
