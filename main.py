@@ -69,7 +69,7 @@ async def upload_image(files: List[UploadFile] = File(...)):
         request_options=request_opts
     )
 
-    asyncio.run(remove_all_files_async())
+    await remove_all_files_async()
 
     return JSONResponse(
         status_code=200,
