@@ -77,3 +77,5 @@ docs/_build/
 # Tệp cấu hình cá nhân
 *.env
 *.secret
+
+images/

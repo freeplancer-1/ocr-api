@@ -1,5 +1,9 @@
+import asyncio
 import os
-from typing import Union
+from typing import List
+
+import aiofiles
+import aiofiles.os as aios
 
 from PIL import Image
 from dotenv import load_dotenv
@@ -18,6 +22,9 @@ load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel("gemini-2.0-flash-lite")
+request_opts = {
+    'retry': retry.Retry(initial=1, multiplier=2, maximum=60, deadline=300)
+}
 
 app = FastAPI()
 
@@ -41,35 +48,58 @@ def read_root():
     return {"Hello": "World"}
 
 
-@api_router.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@api_router.post("/upload-image")
+async def upload_image(files: List[UploadFile] = File(...)):
+    if not files:
+        raise HTTPException(status_code=400, detail="Chưa upload file nào")
 
+    for f in files:
+        if not f.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Chỉ cho phép upload file hình ảnh")
 
-@api_router.post("/upload-image/")
-async def upload_image(file: UploadFile = File(...)):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Chỉ cho phép upload file hình ảnh")
+    if len(files) == 1:
+        contents = [gemini_prompt, Image.open(files[0].file)]
+    else:
+        saved_paths = [await save_file(f) for f in files]
+        file_refs = [genai.upload_file(path) for path in saved_paths]
+        contents = [gemini_prompt, *file_refs]
 
-    image = Image.open(file.file)
     response = model.generate_content(
-        contents=[gemini_prompt, image],
-        request_options={
-            'retry': retry.Retry(
-                initial=1,
-                multiplier=2,
-                maximum=60,
-                deadline=300
-            )
-        }
+        contents=contents,
+        request_options=request_opts
     )
+
+    asyncio.run(remove_all_files_async())
 
     return JSONResponse(
         status_code=200,
-        content={
-            "data": parse_gemini_output(response.text)
-        },
+        content={"data": parse_gemini_output(response.text)}
     )
+
+
+async def remove_all_files_async(folder_path: str = "images") -> None:
+    names = await aios.listdir(folder_path)
+    for name in names:
+        path = os.path.join(folder_path, name)
+        try:
+            await aios.remove(path)
+        except Exception as e:
+            print(f"Failed to delete {path}: {e}")
+
+
+async def save_file(fileUpload: UploadFile = File(...)):
+    os.makedirs("images", exist_ok=True)
+
+    save_path = os.path.join("images", fileUpload.filename)
+
+    await fileUpload.seek(0)
+
+    async with aiofiles.open(save_path, "wb") as out_file:
+        while chunk := await fileUpload.read(1024):
+            await out_file.write(chunk)
+
+    await fileUpload.close()
+    return save_path
 
 
 app.include_router(api_router)
