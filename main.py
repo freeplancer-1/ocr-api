@@ -64,10 +64,11 @@ async def upload_image(files: List[UploadFile] = File(...)):
         file_refs = [genai.upload_file(path) for path in saved_paths]
         contents = [gemini_prompt, *file_refs]
 
-    response = model.generate_content(
-        contents=contents,
-        request_options=request_opts
-    )
+    if len(files) > 1:
+        response = model.generate_content(
+            contents=contents,
+            request_options=request_opts
+        )
 
     await remove_all_files_async()
 
