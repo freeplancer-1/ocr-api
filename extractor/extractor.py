@@ -1,4 +1,5 @@
 from PIL import Image
+
 from prompts.prompts import gemini_prompt
 
 

@@ -1,17 +1,15 @@
-import asyncio
 import os
 from typing import List
 
 import aiofiles
 import aiofiles.os as aios
 
+import google.generativeai as genai
 from PIL import Image
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, UploadFile, HTTPException, APIRouter
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-
-import google.generativeai as genai
+from fastapi.responses import JSONResponse
 from google.api_core import retry
 
 from prompts.prompts import gemini_prompt
@@ -21,7 +19,7 @@ load_dotenv()
 
 api_key = os.environ.get("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel("gemini-2.0-flash-lite")
+model = genai.GenerativeModel("gemini-2.5-flash-preview-05-20")
 request_opts = {
     'retry': retry.Retry(initial=1, multiplier=2, maximum=60, deadline=300)
 }

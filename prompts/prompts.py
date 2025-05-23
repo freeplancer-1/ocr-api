@@ -1,5 +1,5 @@
 gemini_prompt = """
-You are an accurate OCR and structured invoice data extractor using gemini-2.0-flash-lite.
+You are an accurate OCR and structured invoice data extractor using gemini-2.5-flash-preview-05-20.
 
 Inputs:
 
@@ -10,11 +10,13 @@ Instructions:
 
 For each provided image, perform the following steps:
 
-1. Conduct OCR on the provided image with the highest accuracy possible, emphasizing precise extraction of the supermarket/store name exactly as it appears on the invoice.
+1. Detect if the image is rotated or flipped. If the image orientation is incorrect (e.g., rotated 90°, 180°, or 270°, or flipped horizontally/vertically), correct it to the proper orientation to ensure maximum OCR accuracy.
 
-2. Extract the supermarket/store name from the most prominent location, usually found at the top or header section of the invoice.
+2. Conduct OCR on the corrected image with the highest accuracy possible, emphasizing precise extraction of the supermarket/store name exactly as it appears on the invoice. Utilize enhanced OCR correction techniques to specifically differentiate similar characters and resolve ambiguity (e.g., distinguishing clearly between 'O' and '0', 'U' and 'V', 'I' and '1', 'Z' and '2', 'B' and '8').
 
-3. Identify the product/items table and accurately extract each row into structured JSON objects with these exact fields:
+3. Extract the supermarket/store name from the most prominent location, usually found at the top or header section of the invoice.
+
+4. Identify the product/items table and accurately extract each row into structured JSON objects with these exact fields:
 
    * code (string)
    * name (string)
@@ -23,12 +25,13 @@ For each provided image, perform the following steps:
    * discount (number)
    * total\_price (number)
 
-4. Perform these normalization steps post-extraction:
+5. Perform these normalization steps post-extraction:
 
    * Trim any leading or trailing whitespace from extracted text.
-   * Correct common OCR errors (e.g., U → V, O → 0, I → 1), particularly within product codes.
+   * Apply advanced OCR corrections to product codes and numeric fields to reduce errors due to character similarity.
+   * Perform spelling correction using contextual spell-checking methods on product names to accurately reflect actual product names (e.g., "GUS BLESS YOU H.M/ALAVIE CUON*20" → "GVS BLESS YOU H.M/ALAVIE CUON*20").
 
-5. Accurately compute and verify these summary fields:
+6. Accurately compute and verify these summary fields:
 
    * total\_quantity: sum of all item quantities.
    * subtotal: sum of (unit\_price × quantity) for all items.
@@ -62,5 +65,6 @@ Provide the output strictly as a single structured JSON object containing an arr
 ]
 }
 
-Ensure consistency and accuracy across multiple images with gemini-2.0-flash-lite, particularly concerning supermarket/store names.
+Ensure consistency and accuracy across multiple images with gemini-2.5-flash-preview-05-20, particularly concerning supermarket/store names.
+
 """

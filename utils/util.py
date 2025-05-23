@@ -1,5 +1,6 @@
 import json
 import re
+
 from rapidfuzz import process, fuzz
 
 CATALOG = [
@@ -17,9 +18,6 @@ def correct_name(scanned: str) -> str:
 
 
 def parse_gemini_output(raw_text: str) -> dict:
-    """
-    Trích JSON từ đầu ra (có thể kèm text thừa), rồi load thành dict.
-    """
     m = re.search(r'(\{.*\})', raw_text, re.DOTALL)
     if not m:
         raise ValueError("Không tìm thấy JSON trong đầu ra của Gemini")
