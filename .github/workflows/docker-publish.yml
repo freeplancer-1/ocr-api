@@ -1,4 +1,4 @@
-name: Build and Push Rasa Docker Image
+name: Build and Push OCR API Docker Image
 
 on:
   push:
